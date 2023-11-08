@@ -10,11 +10,6 @@ namespace CatalogueService.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        private static readonly List<ItemDto> items = new()
-        {
-            new ItemDto(Guid.NewGuid(), "Portion", "Restores", 5 , DateTimeOffset.UtcNow),
-            new ItemDto(Guid.NewGuid(), "Portion 2", "Restores all", 20 , DateTimeOffset.UtcNow),
-        };
         private readonly IMapper mapper;
         private readonly ItemRepo itemRepo = new();
 
