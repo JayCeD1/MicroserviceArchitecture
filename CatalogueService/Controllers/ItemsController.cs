@@ -36,7 +36,7 @@ namespace CatalogueService.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update(Guid id, UpdateItemDto updateItemDto)
+        public IActionResult Update(Guid id, UpdateItemDto updateItemDto)
         {
             var item = items.Where(x => x.Id == id).SingleOrDefault();
 
@@ -49,6 +49,15 @@ namespace CatalogueService.Controllers
 
             var index = items.FindIndex(x => x.Id == id);
             items[index] = updatedItem;
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+            var index = items.FindIndex(x => x.Id == id);
+            items.RemoveAt(index);
 
             return NoContent();
         }
