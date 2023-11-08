@@ -11,10 +11,11 @@ namespace CatalogueService.Controllers
     public class ItemsController : ControllerBase
     {
         private readonly IMapper mapper;
-        private readonly ItemRepo itemRepo = new();
+        private readonly IItemRepo itemRepo;
 
-        public ItemsController(IMapper mapper)
+        public ItemsController(IItemRepo itemRepo, IMapper mapper)
         {
+            this.itemRepo = itemRepo;
             this.mapper = mapper;
         }
 
