@@ -4,7 +4,7 @@ using SharpCompress.Common;
 
 namespace CatalogueService.Repo
 {
-    public class ItemRepo
+    public class ItemRepo : IItemRepo
     {
         private const string collectionName = "Items";
 
@@ -12,10 +12,8 @@ namespace CatalogueService.Repo
 
         private readonly FilterDefinitionBuilder<Item> filterBuilder = Builders<Item>.Filter;
 
-        public ItemRepo()
+        public ItemRepo(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient("mongodb://localhost:27017");
-            var database = mongoClient.GetDatabase("Catalog");
             dbCollection = database.GetCollection<Item>(collectionName);
         }
 
