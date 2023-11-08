@@ -34,5 +34,23 @@ namespace CatalogueService.Controllers
 
             return CreatedAtAction(nameof(GetById), new { item.Id}, item);
         }
+
+        [HttpPut("{id}")]
+        public ActionResult Update(Guid id, UpdateItemDto updateItemDto)
+        {
+            var item = items.Where(x => x.Id == id).SingleOrDefault();
+
+            var updatedItem = item with
+            {
+                Name = updateItemDto.Name,
+                Description = updateItemDto.Description,
+                Price = updateItemDto.Price
+            };
+
+            var index = items.FindIndex(x => x.Id == id);
+            items[index] = updatedItem;
+
+            return NoContent();
+        }
     }
 }
