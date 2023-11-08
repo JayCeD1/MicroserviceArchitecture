@@ -20,10 +20,16 @@ namespace CatalogueService.Controllers
         }
 
         [HttpGet("{id}",Name = "GetById")]
-        public ItemDto GetById(Guid id)
+        public ActionResult<ItemDto> GetById(Guid id)
         {
             var item = items.Where(item => item.Id == id).SingleOrDefault();
-            return item;
+
+            if(item != null)
+            {
+                return item;
+            }
+
+            return NotFound();
         }
 
         [HttpPost]
@@ -40,13 +46,18 @@ namespace CatalogueService.Controllers
         {
             var item = items.Where(x => x.Id == id).SingleOrDefault();
 
+            if (item == null)
+            {
+                return NotFound();
+            }
+
             var updatedItem = item with
             {
                 Name = updateItemDto.Name,
                 Description = updateItemDto.Description,
                 Price = updateItemDto.Price
             };
-
+           
             var index = items.FindIndex(x => x.Id == id);
             items[index] = updatedItem;
 
@@ -57,6 +68,11 @@ namespace CatalogueService.Controllers
         public IActionResult Delete(Guid id)
         {
             var index = items.FindIndex(x => x.Id == id);
+
+            if (index < 0)
+            {
+                return NotFound();
+            }
             items.RemoveAt(index);
 
             return NoContent();
