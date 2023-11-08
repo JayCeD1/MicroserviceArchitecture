@@ -1,5 +1,7 @@
+using CatalogueService.Repo;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,15 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Register mongo DB Serializers
+//Dependency Injection
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("ConnString"));
+    return mongoClient.GetDatabase(builder.Configuration.GetConnectionString("Database"));
+});
+builder.Services.AddScoped<IItemRepo, ItemRepo>();
+
+//Register MongoDB Serializers
 BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.BsonType.String));
 BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(MongoDB.Bson.BsonType.String));
 
