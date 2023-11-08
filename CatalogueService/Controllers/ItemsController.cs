@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using CatalogueService.Entities;
+using CatalogueService.Repo;
+using Microsoft.AspNetCore.Mvc;
 using static CatalogueService.Dtos;
 
 namespace CatalogueService.Controllers
@@ -12,68 +15,81 @@ namespace CatalogueService.Controllers
             new ItemDto(Guid.NewGuid(), "Portion", "Restores", 5 , DateTimeOffset.UtcNow),
             new ItemDto(Guid.NewGuid(), "Portion 2", "Restores all", 20 , DateTimeOffset.UtcNow),
         };
+        private readonly IMapper mapper;
+        private readonly ItemRepo itemRepo = new();
 
-        [HttpGet]
-        public IEnumerable<ItemDto> Get()
+        public ItemsController(IMapper mapper)
         {
-            return items;
+            this.mapper = mapper;
         }
 
-        [HttpGet("{id}",Name = "GetById")]
-        public ActionResult<ItemDto> GetById(Guid id)
+        [HttpGet]
+        public async Task<IEnumerable<ItemDto>> GetAsync()
         {
-            var item = items.Where(item => item.Id == id).SingleOrDefault();
+            var items = await itemRepo.GetAllAsync();
+            return mapper.Map<IEnumerable<ItemDto>>(items);
+        }
+
+        [HttpGet("{id}",Name = "GetByIdAsync")]
+        public async Task<ActionResult<ItemDto>> GetByIdAsync(Guid id)
+        {
+            var item = await itemRepo.GetAsync(id);
 
             if(item != null)
             {
-                return item;
+                return mapper.Map<ItemDto>(item);
             }
 
             return NotFound();
         }
 
         [HttpPost]
-        public ActionResult<ItemDto> Create(CreateItemDto createItemDto)
+        public async Task<ActionResult<ItemDto>> CreateAsync(CreateItemDto createItemDto)
         {
-            var item = new ItemDto(Guid.NewGuid(), createItemDto.Name, createItemDto.Description, createItemDto.Price, DateTimeOffset.UtcNow);
-            items.Add(item);
+            var item = new Item
+            {
+                Name = createItemDto.Name,
+                Description = createItemDto.Description,
+                Price = createItemDto.Price,
+                CreatedDate = DateTimeOffset.UtcNow
+            };
 
-            return CreatedAtAction(nameof(GetById), new { item.Id}, item);
+            await itemRepo.CreateAsync(item);
+
+            return CreatedAtAction(nameof(GetByIdAsync), new { item.Id }, item);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, UpdateItemDto updateItemDto)
+        public async Task<IActionResult> UpdateAsync(Guid id, UpdateItemDto updateItemDto)
         {
-            var item = items.Where(x => x.Id == id).SingleOrDefault();
+            var item = await itemRepo.GetAsync(id);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            var updatedItem = item with
-            {
-                Name = updateItemDto.Name,
-                Description = updateItemDto.Description,
-                Price = updateItemDto.Price
-            };
-           
-            var index = items.FindIndex(x => x.Id == id);
-            items[index] = updatedItem;
+            item.Name = updateItemDto.Name;
+            item.Description = updateItemDto.Description;
+            item.Price = updateItemDto.Price;
+
+
+            await itemRepo.UpdateAsync(item);
 
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            var index = items.FindIndex(x => x.Id == id);
+            var item = await itemRepo.GetAsync(id);
 
-            if (index < 0)
+            if (item == null)
             {
                 return NotFound();
             }
-            items.RemoveAt(index);
+
+            await itemRepo.RemoveAsync(item.Id);
 
             return NoContent();
         }

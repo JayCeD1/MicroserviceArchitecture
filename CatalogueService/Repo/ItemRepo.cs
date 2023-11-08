@@ -30,7 +30,7 @@ namespace CatalogueService.Repo
             return await dbCollection.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task creatAsync(Item entity)
+        public async Task CreateAsync(Item entity)
         {
             if (entity == null)
             {
