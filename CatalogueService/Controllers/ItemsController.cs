@@ -19,10 +19,20 @@ namespace CatalogueService.Controllers
             return items;
         }
 
+        [HttpGet("{id}",Name = "GetById")]
         public ItemDto GetById(Guid id)
         {
             var item = items.Where(item => item.Id == id).SingleOrDefault();
             return item;
+        }
+
+        [HttpPost]
+        public ActionResult<ItemDto> Create(CreateItemDto createItemDto)
+        {
+            var item = new ItemDto(Guid.NewGuid(), createItemDto.Name, createItemDto.Description, createItemDto.Price, DateTimeOffset.UtcNow);
+            items.Add(item);
+
+            return CreatedAtAction(nameof(GetById), new { item.Id}, item);
         }
     }
 }
