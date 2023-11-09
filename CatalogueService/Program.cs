@@ -17,22 +17,9 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Dependency Injection
-builder.Services.AddSingleton(serviceProvider =>
-{
-    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("ConnString"));
-    return mongoClient.GetDatabase(builder.Configuration.GetConnectionString("Database"));
-});
-
-builder.Services.AddScoped<IRepo<Item>>(serviceProvide =>
-{
-    var database = serviceProvide.GetService<IMongoDatabase>();
-    return new MongoRepo<Item>(database, "items");
-});
-
-//Register MongoDB Serializers
-BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.BsonType.String));
-BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(MongoDB.Bson.BsonType.String));
+//Mongo Configuration
+builder.Services.AddMongo()
+    .AddMongoRepo<Item>("items");
 
 //AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
