@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common;
+using InventoryService.Clients;
 using InventoryService.Entities;
 using Microsoft.AspNetCore.Mvc;
 using static InventoryService.Dtos;
@@ -12,11 +13,13 @@ namespace InventoryService.Controllers
     {
         private readonly IRepo<InventoryItem> itemsRepo;
         private readonly IMapper mapper;
+        private readonly CatalogClient catalogClient;
 
-        public ItemsController(IRepo<InventoryItem> itemsRepo, IMapper mapper)
+        public ItemsController(IRepo<InventoryItem> itemsRepo, IMapper mapper, CatalogClient catalogClient)
         {
             this.itemsRepo = itemsRepo;
             this.mapper = mapper;
+            this.catalogClient = catalogClient;
         }
 
         [HttpGet]
@@ -27,9 +30,17 @@ namespace InventoryService.Controllers
                 return BadRequest();
             }
 
+            var catalogItems = await catalogClient.GetCatalogItemsAsync();
             var items = await itemsRepo.GetAllAsync(item => item.UserId == userId);
 
-            return Ok(mapper.Map<IEnumerable<InventoryItemDto>>(items));
+            var inventoryItemDto = items.Select(inventoryItem =>
+            {
+                var catalogItem = catalogItems.Single(catalog => catalog.Id == inventoryItem.CatalogItemId);
+
+                return new InventoryItemDto (catalogItem.Id, catalogItem.Name, catalogItem.Description, inventoryItem.Quantity, inventoryItem.AcquiredDate);
+            });
+
+            return Ok(inventoryItemDto);
         }
 
         [HttpPost]

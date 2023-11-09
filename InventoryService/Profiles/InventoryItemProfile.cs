@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InventoryService.Entities;
 using static InventoryService.Dtos;
 
 namespace InventoryService.Profiles
@@ -9,7 +10,7 @@ namespace InventoryService.Profiles
 
         public InventoryItemProfile()
         {
-            CreateMap<InventoryItemProfile, InventoryItemDto>();
+            CreateMap<InventoryItem, InventoryItemDto>();
         }
     }
 }
