@@ -3,6 +3,7 @@ using InventoryService.Clients;
 using InventoryService.Entities;
 using Polly;
 using Polly.Timeout;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddSwaggerGen();
 //Add Mongo Configuration
 builder.Services.AddMongo()
     .AddMongoRepo<InventoryItem>("inventoryitems");
+
 
 //Http client with jitter config
 Random jitter = new Random();
@@ -31,7 +33,19 @@ builder.Services.AddHttpClient<CatalogClient>(client =>
         var serviceProvider = builder.Services.BuildServiceProvider();
         serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Delaying for {timespan.TotalSeconds} seconds, then making retry {retryAttempt}");
     }
-))
+)).AddTransientHttpErrorPolicy(builders => builders.Or<TimeoutRejectedException>().CircuitBreakerAsync(
+    3, TimeSpan.FromTicks(15),
+    onBreak: (outcome, timespan) =>
+    {
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Opening circult for {timespan.TotalSeconds} seconds...");
+    },
+    onReset: () =>
+    {
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Closing circult ...");
+    }
+    ))
     //Time out handler
     .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(1));
 
