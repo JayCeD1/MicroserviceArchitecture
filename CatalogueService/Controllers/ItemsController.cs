@@ -20,10 +20,10 @@ namespace CatalogueService.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ItemDto>> GetAsync()
+        public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
             var items = await itemRepo.GetAllAsync();
-            return mapper.Map<IEnumerable<ItemDto>>(items);
+            return Ok(mapper.Map<IEnumerable<ItemDto>>(items));
         }
 
         [HttpGet("{id}",Name = "GetByIdAsync")]
