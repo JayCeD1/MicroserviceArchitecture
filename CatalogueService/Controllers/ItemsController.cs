@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CatalogueService.Entities;
-using CatalogueService.Repo;
+using Common;
 using Microsoft.AspNetCore.Mvc;
 using static CatalogueService.Dtos;
 

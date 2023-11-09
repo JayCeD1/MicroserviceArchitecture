@@ -1,8 +1,5 @@
 using CatalogueService.Entities;
-using CatalogueService.Repo;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
+using Common.MongoDB;
 
 var builder = WebApplication.CreateBuilder(args);
 

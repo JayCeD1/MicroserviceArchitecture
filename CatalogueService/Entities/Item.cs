@@ -1,4 +1,6 @@
-﻿namespace CatalogueService.Entities
+﻿using Common;
+
+namespace CatalogueService.Entities
 {
     public class Item : IEntity
     {
