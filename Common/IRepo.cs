@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 
 namespace Common
 {
-    internal interface IRepo<T> where T : IEntity
+    public interface IRepo<T> where T : IEntity
     {
         Task CreateAsync(T entity);
         Task<IReadOnlyCollection<T>> GetAllAsync();
