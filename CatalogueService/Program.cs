@@ -1,3 +1,4 @@
+using CatalogueService.Entities;
 using CatalogueService.Repo;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -22,7 +23,12 @@ builder.Services.AddSingleton(serviceProvider =>
     var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("ConnString"));
     return mongoClient.GetDatabase(builder.Configuration.GetConnectionString("Database"));
 });
-builder.Services.AddScoped<IItemRepo, ItemRepo>();
+
+builder.Services.AddScoped<IRepo<Item>>(serviceProvide =>
+{
+    var database = serviceProvide.GetService<IMongoDatabase>();
+    return new MongoRepo<Item>(database, "items");
+});
 
 //Register MongoDB Serializers
 BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.BsonType.String));
