@@ -24,7 +24,7 @@ Random jitter = new Random();
 
 builder.Services.AddHttpClient<CatalogClient>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7244");
+    client.BaseAddress = new Uri("https://localhost:7212");
 }).AddTransientHttpErrorPolicy(builders => builders.Or<TimeoutRejectedException>().WaitAndRetryAsync(
     5, 
     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) + TimeSpan.FromMilliseconds(jitter.Next(0,1000)),
@@ -33,7 +33,8 @@ builder.Services.AddHttpClient<CatalogClient>(client =>
         var serviceProvider = builder.Services.BuildServiceProvider();
         serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Delaying for {timespan.TotalSeconds} seconds, then making retry {retryAttempt}");
     }
-)).AddTransientHttpErrorPolicy(builders => builders.Or<TimeoutRejectedException>().CircuitBreakerAsync(
+))//Circuit breaker pattern
+.AddTransientHttpErrorPolicy(builders => builders.Or<TimeoutRejectedException>().CircuitBreakerAsync(
     3, TimeSpan.FromTicks(15),
     onBreak: (outcome, timespan) =>
     {
