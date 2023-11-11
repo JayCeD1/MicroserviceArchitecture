@@ -13,6 +13,8 @@ namespace CatalogueService.Controllers
         private readonly IMapper mapper;
         private readonly IRepo<Item> itemRepo;
 
+        private static int requestCounter = 0;
+
         public ItemsController(IRepo<Item> itemRepo, IMapper mapper)
         {
             this.itemRepo = itemRepo;
@@ -22,7 +24,24 @@ namespace CatalogueService.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
+            requestCounter++;
+
+            Console.WriteLine($"Request {requestCounter}: Starting... ");
+
+            if (requestCounter <= 2)
+            {
+                Console.WriteLine($"Request {requestCounter}: Delaying... ");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+
+            if (requestCounter <= 4)
+            {
+                Console.WriteLine($"Request {requestCounter}: 500 (Internal Server Error) ");
+                return StatusCode(500);
+            }
+
             var items = await itemRepo.GetAllAsync();
+            Console.WriteLine($"Request {requestCounter}: 200 (OK) ");
             return Ok(mapper.Map<IEnumerable<ItemDto>>(items));
         }
 
