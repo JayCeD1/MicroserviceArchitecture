@@ -3,6 +3,7 @@ using Common;
 using InventoryService.Clients;
 using InventoryService.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using static InventoryService.Dtos;
 
 namespace InventoryService.Controllers
@@ -23,7 +24,7 @@ namespace InventoryService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InventoryItemDto>>> GetAsync(Guid userId)
+        public async Task<ActionResult<IEnumerable<InventoryItemDto>>> GetAsync([Required] Guid userId)
         {
             if (userId == Guid.Empty)
             {
