@@ -39,12 +39,12 @@ builder.Services.AddHttpClient<CatalogClient>(client =>
     onBreak: (outcome, timespan) =>
     {
         var serviceProvider = builder.Services.BuildServiceProvider();
-        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Opening circult for {timespan.TotalSeconds} seconds...");
+        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Opening circuit for {timespan.TotalSeconds} seconds...");
     },
     onReset: () =>
     {
         var serviceProvider = builder.Services.BuildServiceProvider();
-        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Closing circult ...");
+        serviceProvider.GetService<ILogger<CatalogClient>>()?.LogWarning($"Closing circuit ...");
     }
     ))
     //Time out handler
@@ -56,7 +56,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if ( app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

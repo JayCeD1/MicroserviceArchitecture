@@ -1,14 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Driver;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 namespace Common.MongoDB
 {
