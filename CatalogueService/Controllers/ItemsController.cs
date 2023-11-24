@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using CatalogueService.Entities;
 using Common;
+using Contract;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using static CatalogueService.Dtos;
 
@@ -10,49 +12,33 @@ namespace CatalogueService.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        private readonly IMapper mapper;
-        private readonly IRepo<Item> itemRepo;
+        private readonly IMapper _mapper;
+        private readonly IRepo<Item> _itemRepo;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        private static int requestCounter = 0;
 
-        public ItemsController(IRepo<Item> itemRepo, IMapper mapper)
+        public ItemsController(IRepo<Item> itemRepo, IMapper mapper, IPublishEndpoint publishEndpoint)
         {
-            this.itemRepo = itemRepo;
-            this.mapper = mapper;
+            _itemRepo = itemRepo;
+            _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
-            requestCounter++;
-
-            Console.WriteLine($"Request {requestCounter}: Starting... ");
-
-            if (requestCounter <= 2)
-            {
-                Console.WriteLine($"Request {requestCounter}: Delaying... ");
-                await Task.Delay(TimeSpan.FromSeconds(10));
-            }
-
-            if (requestCounter <= 4)
-            {
-                Console.WriteLine($"Request {requestCounter}: 500 (Internal Server Error) ");
-                return StatusCode(500);
-            }
-
-            var items = await itemRepo.GetAllAsync();
-            Console.WriteLine($"Request {requestCounter}: 200 (OK) ");
-            return Ok(mapper.Map<IEnumerable<ItemDto>>(items));
+            var items = await _itemRepo.GetAllAsync();
+            return Ok(_mapper.Map<IEnumerable<ItemDto>>(items));
         }
 
         [HttpGet("{id}",Name = "GetByIdAsync")]
         public async Task<ActionResult<ItemDto>> GetByIdAsync(Guid id)
         {
-            var item = await itemRepo.GetAsync(id);
+            var item = await _itemRepo.GetAsync(id);
 
             if(item != null)
             {
-                return mapper.Map<ItemDto>(item);
+                return _mapper.Map<ItemDto>(item);
             }
 
             return NotFound();
@@ -69,7 +55,9 @@ namespace CatalogueService.Controllers
                 CreatedDate = DateTimeOffset.UtcNow
             };
 
-            await itemRepo.CreateAsync(item);
+            await _itemRepo.CreateAsync(item);
+
+            await _publishEndpoint.Publish(new CatalogueItemCreated(item.Id, item.Name, item.Description));
 
             return CreatedAtAction(nameof(GetByIdAsync), new { item.Id }, item);
         }
@@ -77,7 +65,7 @@ namespace CatalogueService.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync(Guid id, UpdateItemDto updateItemDto)
         {
-            var item = await itemRepo.GetAsync(id);
+            var item = await _itemRepo.GetAsync(id);
 
             if (item == null)
             {
@@ -89,7 +77,9 @@ namespace CatalogueService.Controllers
             item.Price = updateItemDto.Price;
 
 
-            await itemRepo.UpdateAsync(item);
+            await _itemRepo.UpdateAsync(item);
+            
+            await _publishEndpoint.Publish(new CatalogueItemUpdated(item.Id, item.Name, item.Description));
 
             return NoContent();
         }
@@ -97,14 +87,16 @@ namespace CatalogueService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            var item = await itemRepo.GetAsync(id);
+            var item = await _itemRepo.GetAsync(id);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            await itemRepo.RemoveAsync(item.Id);
+            await _itemRepo.RemoveAsync(item.Id);
+            
+            await _publishEndpoint.Publish(new CatalogueItemDeleted(item.Id));
 
             return NoContent();
         }
