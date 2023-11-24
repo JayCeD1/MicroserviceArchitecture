@@ -1,5 +1,6 @@
 using CatalogueService.Entities;
 using Common.MongoDB;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,20 @@ builder.Services.AddSwaggerGen();
 //Mongo Configuration
 builder.Services.AddMongo()
     .AddMongoRepo<Item>("items");
+
+//MassTransit
+builder.Services.AddMassTransit(config =>
+{
+    config.UsingRabbitMq((context, configurator) =>
+    {
+        var serviceName = builder.Configuration.GetSection("ServiceSettings")["Name"];
+
+        var rabbitMqHost = builder.Configuration.GetSection("RabbitMQSettings")["Host"];
+        configurator.Host(rabbitMqHost);
+        configurator.ConfigureEndpoints(context, new KebabCaseEndpointNameFormatter(serviceName,false));
+    });
+});
+
 
 //AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
